@@ -15,10 +15,12 @@ import {
   Typography,
   TextField,
   Button,
+  IconButton,
   Divider,
 } from "@material-ui/core";
 import ForumIcon from "@material-ui/icons/Forum";
 import InfoIcon from "@material-ui/icons/Info";
+import SendIcon from "@material-ui/icons/Send";
 import MessageIcon from "@material-ui/icons/Message";
 import io from "socket.io-client";
 import { handleEventReceivement } from "../../redux/actions/events";
@@ -26,7 +28,7 @@ import { handleEventReceivement } from "../../redux/actions/events";
 // -----------------------------
 
 // -----------------------------
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   appBar: {
     background: "#FFFFFF",
   },
@@ -81,6 +83,18 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: "30px",
     marginTop: "20px",
   },
+  messageBox: {
+    height: "400px",
+    marginBottom: "50px",
+  },
+  messageButton: {
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.secondary.main,
+    fontSize: "15px",
+
+    marginLeft: "30px",
+    marginTop: "25px",
+  },
 }));
 // -----------------------------
 
@@ -88,13 +102,16 @@ const useStyles = makeStyles((theme) => ({
 const Chatting = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const eventState = useSelector((state) => state.events);
+  const eventState = useSelector(state => state.events);
   const [topicState, setTopicState] = useState("message");
+  const [authState, setAuthState] = useState("");
 
   const handleSubscription = () => {
-    const socket = io(`http://${addrState}`);
+    const socket = io(`http://${addrState}`, {
+      query: { access_token: authState },
+    });
 
-    socket.on(topicState, (message) => {
+    socket.on(topicState, message => {
       dispatch(handleEventReceivement(message));
     });
   };
@@ -120,33 +137,61 @@ const Chatting = () => {
       </div>
       <TextField
         label="Server IP Address"
-        onChange={(event) => setAddrState(event.target.value)}
+        onChange={event => setAddrState(event.target.value)}
         variant="outlined"
         className={classes.addressForm}
         helperText={"Ex: 192.168.10.1:3000"}
       />
       <TextField
         label="Subscribing topic"
-        onChange={(event) => setTopicState(event.target.value)}
+        onChange={event => setTopicState(event.target.value)}
         variant="outlined"
         className={classes.addressForm}
         helperText={"'message' by default"}
+      />
+      <TextField
+        label="Authorization token"
+        onChange={event => setAuthState(event.target.value)}
+        variant="outlined"
+        className={classes.addressForm}
       />
       <Button className={classes.submitButton} onClick={handleSubscription}>
         CONNECT
       </Button>
       <Divider />
+
       <div className={classes.messageInfo}>
         <MessageIcon />
         <Typography style={{ paddingLeft: "10px" }}>Events</Typography>
       </div>
-      <div>
+      <div className={classes.messageBox}>
         {eventState.map((event, index) => (
           <Typography key={index} style={{ marginLeft: "30px" }}>
             {event}
           </Typography>
         ))}
       </div>
+      <TextField
+        label="Topic"
+        onChange={event => setAuthState(event.target.value)}
+        variant="outlined"
+        size="small"
+        className={classes.addressForm}
+      />
+      <TextField
+        label="Message"
+        onChange={event => setAuthState(event.target.value)}
+        variant="outlined"
+        size="small"
+        className={classes.addressForm}
+      />
+      <IconButton
+        className={classes.messageButton}
+        onClick={handleSubscription}
+      >
+        <SendIcon />
+      </IconButton>
+      <IconButton />
     </div>
   );
 };
